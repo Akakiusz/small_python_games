@@ -58,8 +58,14 @@ class MastermindApp:
         ).grid(row=1, column=0, columnspan=2, pady=(0, 12))
 
         # Left: the board of past guesses
-        self.board = tk.Frame(self.root, bg=PANEL, padx=12, pady=12)
-        self.board.grid(row=2, column=0, padx=(16, 8), sticky="n")
+        board_panel = tk.Frame(self.root, bg=PANEL, padx=12, pady=12)
+        board_panel.grid(row=2, column=0, padx=(16, 8), sticky="n")
+
+        tk.Label(board_panel, text="Your guesses", bg=PANEL, fg=MUTED,
+                 font=("Helvetica", 10)).pack(pady=(0, 8))
+
+        self.board = tk.Frame(board_panel, bg=PANEL)
+        self.board.pack()
 
         # Right: the controls
         panel = tk.Frame(self.root, bg=PANEL, padx=12, pady=12)
@@ -172,13 +178,18 @@ class MastermindApp:
         feedback = tk.Frame(row, bg=BG, padx=4, pady=2)
         feedback.pack(side="left", padx=(10, 0))
         for i in range(CODE_LENGTH):
+            # A black peg on a dark background needs an outline to be visible,
+            # so each peg state gets its own fill + border combination.
             if i < black:
-                fill = "#000000"
+                fill, border = "#000000", ACCENT
             elif i < black + white:
-                fill = INK
+                fill, border = INK, INK
             else:
-                fill = BG
-            tk.Label(feedback, bg=fill, width=1, height=1).pack(side="left", padx=1)
+                fill, border = BG, "#3a3d47"
+            tk.Label(
+                feedback, bg=fill, width=1, height=1,
+                highlightbackground=border, highlightthickness=1,
+            ).pack(side="left", padx=2)
 
     def _draw_secret(self):
         row = tk.Frame(self.board, bg=PANEL)
