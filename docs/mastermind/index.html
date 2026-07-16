@@ -133,6 +133,59 @@
 
   .key { margin-top: 16px; font-size: 12px; color: var(--muted); }
   .key-item { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+  .key-note {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 11px; line-height: 1.45;
+  }
+  .key-note em { color: var(--ink); font-style: italic; }
+
+  /* ---- Explainer ---- */
+  .explainer {
+    margin-top: 40px; padding: 28px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  }
+  .explainer h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 24px; margin-bottom: 14px;
+  }
+  .lede { color: var(--muted); font-size: 15px; margin-bottom: 24px; max-width: 60ch; }
+  .lede strong { color: var(--accent); font-weight: 500; }
+
+  .example {
+    background: var(--panel-2); border-radius: 12px;
+    padding: 18px; margin-bottom: 22px;
+  }
+  .example-row {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .example-row:last-child { margin-bottom: 0; }
+  .example-label {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--muted); width: 78px; flex-shrink: 0;
+  }
+  .example-pegs { display: flex; gap: 7px; }
+  .example-note {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--muted); font-style: italic;
+  }
+  .example-fb { margin-left: 0; }
+
+  .breakdown { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+  .breakdown-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; color: var(--muted); line-height: 1.5;
+  }
+  .breakdown-item .fb { flex-shrink: 0; margin-top: 5px; }
+  .breakdown-item strong { color: var(--ink); font-weight: 500; }
+  .breakdown-item em { color: var(--ink); font-style: italic; }
+
+  .punchline {
+    color: var(--muted); font-size: 14px; line-height: 1.6;
+    max-width: 68ch; margin-bottom: 12px;
+  }
+  .punchline:last-child { margin-bottom: 0; }
+  .punchline em { color: var(--ink); font-style: italic; }
 
   .footer-note {
     margin-top: 32px; text-align: center; color: var(--muted); font-size: 13px;
@@ -166,190 +219,4 @@
       <div class="status" id="status"></div>
 
       <div class="key">
-        <div class="key-item"><span class="fb black"></span> right color, right spot</div>
-        <div class="key-item"><span class="fb white"></span> right color, wrong spot</div>
-      </div>
-    </div>
-  </div>
-
-  <p class="footer-note">
-    There's also a Python version with a desktop interface —
-    <a href="https://github.com/Akakiusz/small_python_games/tree/main/mastermind">see the code</a>.
-  </p>
-</div>
-
-<script>
-  const COLORS = {
-    red: 'var(--peg-red)', blue: 'var(--peg-blue)', green: 'var(--peg-green)',
-    yellow: 'var(--peg-yellow)', orange: 'var(--peg-orange)', purple: 'var(--peg-purple)'
-  };
-  const NAMES = Object.keys(COLORS);
-  const CODE_LENGTH = 4;
-  const MAX_ATTEMPTS = 10;
-
-  let secret = [], pending = [], attempt = 0, finished = false;
-
-  const boardEl = document.getElementById('board');
-  const paletteEl = document.getElementById('palette');
-  const currentEl = document.getElementById('current');
-  const statusEl = document.getElementById('status');
-
-  function makeSecret() {
-    return Array.from({ length: CODE_LENGTH },
-      () => NAMES[Math.floor(Math.random() * NAMES.length)]);
-  }
-
-  // Returns { black, white }. Whites exclude blacks, so a peg is never counted twice.
-  function scoreGuess(code, guess) {
-    let black = 0;
-    for (let i = 0; i < CODE_LENGTH; i++) if (code[i] === guess[i]) black++;
-    let overlap = 0;
-    new Set(code).forEach(c => {
-      overlap += Math.min(code.filter(x => x === c).length, guess.filter(x => x === c).length);
-    });
-    return { black, white: overlap - black };
-  }
-
-  function buildPalette() {
-    NAMES.forEach(name => {
-      const b = document.createElement('button');
-      b.className = 'swatch';
-      b.style.background = COLORS[name];
-      b.setAttribute('aria-label', 'Add ' + name);
-      b.addEventListener('click', () => pick(name));
-      paletteEl.appendChild(b);
-    });
-  }
-
-  function pick(name) {
-    if (finished || pending.length >= CODE_LENGTH) return;
-    pending.push(name);
-    renderCurrent();
-    statusEl.textContent = '';
-  }
-
-  function renderCurrent() {
-    currentEl.innerHTML = '';
-    for (let i = 0; i < CODE_LENGTH; i++) {
-      const s = document.createElement('div');
-      s.className = 'slot';
-      if (i < pending.length) {
-        s.style.background = COLORS[pending[i]];
-        s.style.boxShadow = 'inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25)';
-      }
-      currentEl.appendChild(s);
-    }
-  }
-
-  function renderEmptyHint() {
-    boardEl.innerHTML = '<div class="empty-hint">Pick four colors to start</div>';
-  }
-
-  function drawRow(guess, black, white) {
-    if (attempt === 1) boardEl.innerHTML = '';
-    const row = document.createElement('div');
-    row.className = 'row';
-
-    const n = document.createElement('span');
-    n.className = 'row-num';
-    n.textContent = String(attempt).padStart(2, '0');
-    row.appendChild(n);
-
-    const g = document.createElement('div');
-    g.className = 'guess';
-    guess.forEach(c => {
-      const p = document.createElement('div');
-      p.className = 'peg';
-      p.style.background = COLORS[c];
-      g.appendChild(p);
-    });
-    row.appendChild(g);
-
-    const fb = document.createElement('div');
-    fb.className = 'feedback';
-    for (let i = 0; i < CODE_LENGTH; i++) {
-      const d = document.createElement('div');
-      d.className = 'fb';
-      if (i < black) d.classList.add('black');
-      else if (i < black + white) d.classList.add('white');
-      fb.appendChild(d);
-    }
-    row.appendChild(fb);
-    boardEl.appendChild(row);
-  }
-
-  function drawSecret() {
-    const row = document.createElement('div');
-    row.className = 'row';
-    const label = document.createElement('span');
-    label.className = 'row-num';
-    label.textContent = '★';
-    label.style.color = 'var(--accent)';
-    row.appendChild(label);
-    const g = document.createElement('div');
-    g.className = 'guess';
-    secret.forEach(c => {
-      const p = document.createElement('div');
-      p.className = 'peg';
-      p.style.background = COLORS[c];
-      g.appendChild(p);
-    });
-    row.appendChild(g);
-    boardEl.appendChild(row);
-  }
-
-  function submit() {
-    if (finished) return;
-    if (pending.length < CODE_LENGTH) {
-      statusEl.textContent = 'Pick four colors first';
-      return;
-    }
-    const guess = pending.slice();
-    const { black, white } = scoreGuess(secret, guess);
-    attempt++;
-    drawRow(guess, black, white);
-    pending = [];
-    renderCurrent();
-
-    if (black === CODE_LENGTH) {
-      finished = true;
-      statusEl.textContent = 'Cracked it in ' + attempt + '!';
-      statusEl.className = 'status win';
-      return;
-    }
-    if (attempt >= MAX_ATTEMPTS) {
-      finished = true;
-      statusEl.textContent = 'Out of guesses';
-      statusEl.className = 'status lose';
-      drawSecret();
-      return;
-    }
-    statusEl.textContent = 'Attempt ' + (attempt + 1) + ' of ' + MAX_ATTEMPTS;
-  }
-
-  function undo() {
-    if (finished || !pending.length) return;
-    pending.pop();
-    renderCurrent();
-  }
-
-  function reset() {
-    secret = makeSecret();
-    pending = [];
-    attempt = 0;
-    finished = false;
-    renderEmptyHint();
-    statusEl.textContent = '';
-    statusEl.className = 'status';
-    renderCurrent();
-  }
-
-  document.getElementById('submit').addEventListener('click', submit);
-  document.getElementById('undo').addEventListener('click', undo);
-  document.getElementById('reset').addEventListener('click', reset);
-
-  buildPalette();
-  reset();
-</script>
-</body>
-</html>
+        <div class="key-item"><span class="fb
