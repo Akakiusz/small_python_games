@@ -1,5 +1,7 @@
 # Python Mini Games
 
+**[▶ Play Mastermind in your browser](https://akakiusz.github.io/small_python_games/mastermind/)** — no install, works on any device.
+
 A collection of small games I'm building while learning Python. Each one starts
 simple and gets rebuilt as I pick up new concepts — from terminal loops to
 graphical interfaces to tested, packaged applications.
@@ -29,15 +31,16 @@ the right color in the wrong spot. Ten attempts to crack it.
 The rules are separated from the interface so the scoring can be unit tested —
 counting duplicate colors correctly is the part that's easy to get wrong.
 
-**Concepts:** module separation, unit testing (`unittest`), classes, `tkinter`
+Two versions share the same rules: a Python one with a desktop interface, and a
+JavaScript one that runs in the browser.
+
+**[▶ Play it now](https://akakiusz.github.io/small_python_games/mastermind/)**
+
+**Concepts:** module separation, unit testing (`unittest`), classes, `tkinter`, JavaScript
 
 <!--
-  Once you publish the browser version to GitHub Pages and the .exe to Releases,
-  add the real links here. Copy them from your own published Pages URL and
-  release asset — don't guess at the format.
-
-  🎮 Play in the browser: <your Pages URL>
-  ⬇️ Download for Windows: <your release asset URL>
+  When the Windows .exe is published to Releases, add the download link here.
+  Copy the real URL from your own published release asset — don't guess the format.
 -->
 
 ---
@@ -70,6 +73,15 @@ Everything here needs Python 3 and nothing else — no external packages. The
 `tkinter` games use Python's built-in GUI library, which ships with the standard
 Python installers on Windows and macOS. On some Linux distributions it's a
 separate install (`sudo apt install python3-tk`).
+
+## Repo layout
+
+```
+small_python_games/
+├── docs/               # the browser versions, served by GitHub Pages
+├── mastermind/         # Python game + logic module + tests
+└── number_guessing/    # the four versions of the first game
+```
 
 ## Why this repo exists
 
