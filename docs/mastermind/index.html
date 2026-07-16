@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastermind — Python Mini Games</title>
+<meta name="description" content="A logic code-breaking game. Crack the four-color code in ten guesses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14151a;
+    --panel: #1c1e26;
+    --panel-2: #23262f;
+    --ink: #ecebe4;
+    --muted: #8b8d98;
+    --line: #2e313c;
+    --accent: #e8c24b;
+    --peg-red: #e5484d;
+    --peg-blue: #4a7dff;
+    --peg-green: #46c07a;
+    --peg-yellow: #f5c542;
+    --peg-orange: #f08c3c;
+    --peg-purple: #a877e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: radial-gradient(1200px 600px at 50% -10%, #20222c 0%, transparent 60%), var(--bg);
+    color: var(--ink);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  .back {
+    display: inline-block; margin-bottom: 24px;
+    font-family: 'Space Mono', monospace; font-size: 13px;
+    color: var(--muted); text-decoration: none;
+  }
+  .back:hover { color: var(--accent); }
+
+  header { text-align: center; margin-bottom: 32px; }
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: clamp(38px, 7vw, 64px); line-height: 0.95; letter-spacing: -0.02em;
+  }
+  .tagline { color: var(--muted); margin-top: 12px; font-size: 15px; }
+
+  .game { display: grid; grid-template-columns: 1fr 240px; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .game { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel h2 {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px; text-align: center;
+  }
+
+  .board { display: flex; flex-direction: column; gap: 6px; min-height: 90px; }
+  .empty-hint {
+    color: var(--muted); font-size: 13px; text-align: center;
+    padding: 24px 12px; font-family: 'Space Mono', monospace;
+  }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 10px; border-radius: 10px; background: var(--panel-2);
+    animation: pop 0.22s ease;
+  }
+  @keyframes pop { from { transform: translateY(5px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .row { animation: none; } }
+
+  .row-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+  .guess { display: flex; gap: 7px; }
+
+  .peg {
+    width: 28px; height: 28px; border-radius: 50%;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25);
+  }
+
+  .feedback {
+    display: grid; grid-template-columns: repeat(2, 11px); gap: 4px;
+    margin-left: auto; padding: 5px; border-radius: 7px; background: #0f1014;
+  }
+  .fb { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line); }
+  /* A black peg on a dark board needs an outline to read as "filled". */
+  .fb.black { background: #08090c; box-shadow: 0 0 0 1.5px var(--accent); }
+  .fb.white { background: var(--ink); box-shadow: none; }
+
+  .palette { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 16px; }
+  .swatch {
+    aspect-ratio: 1; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25);
+    transition: transform 0.1s ease;
+  }
+  .swatch:hover { transform: scale(1.08); }
+  .swatch:active { transform: scale(0.95); }
+  .swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .swatch { transition: none; } }
+
+  .current {
+    display: flex; gap: 7px; justify-content: center;
+    padding: 10px; background: var(--panel-2); border-radius: 10px; margin-bottom: 12px;
+  }
+  .slot { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line); }
+
+  .btn {
+    width: 100%; padding: 11px; border-radius: 9px; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+    margin-bottom: 7px;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #14151a; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .status {
+    text-align: center; font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 18px;
+  }
+  .status.win { color: var(--peg-green); }
+  .status.lose { color: var(--peg-red); }
+
+  .key { margin-top: 16px; font-size: 12px; color: var(--muted); }
+  .key-item { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+
+  .footer-note {
+    margin-top: 32px; text-align: center; color: var(--muted); font-size: 13px;
+  }
+  .footer-note a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← All games</a>
+
+  <header>
+    <div class="eyebrow">A game of deduction</div>
+    <h1>Mastermind</h1>
+    <p class="tagline">Four colors, ten guesses. Read the pegs and narrow it down.</p>
+  </header>
+
+  <div class="game">
+    <div class="panel">
+      <h2>Your guesses</h2>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Build a guess</h2>
+      <div class="palette" id="palette"></div>
+      <div class="current" id="current"></div>
+      <button class="btn primary" id="submit">Submit guess</button>
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="reset">New game</button>
+      <div class="status" id="status"></div>
+
+      <div class="key">
+        <div class="key-item"><span class="fb black"></span> right color, right spot</div>
+        <div class="key-item"><span class="fb white"></span> right color, wrong spot</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">
+    There's also a Python version with a desktop interface —
+    <a href="https://github.com/Akakiusz/small_python_games/tree/main/mastermind">see the code</a>.
+  </p>
+</div>
+
+<script>
+  const COLORS = {
+    red: 'var(--peg-red)', blue: 'var(--peg-blue)', green: 'var(--peg-green)',
+    yellow: 'var(--peg-yellow)', orange: 'var(--peg-orange)', purple: 'var(--peg-purple)'
+  };
+  const NAMES = Object.keys(COLORS);
+  const CODE_LENGTH = 4;
+  const MAX_ATTEMPTS = 10;
+
+  let secret = [], pending = [], attempt = 0, finished = false;
+
+  const boardEl = document.getElementById('board');
+  const paletteEl = document.getElementById('palette');
+  const currentEl = document.getElementById('current');
+  const statusEl = document.getElementById('status');
+
+  function makeSecret() {
+    return Array.from({ length: CODE_LENGTH },
+      () => NAMES[Math.floor(Math.random() * NAMES.length)]);
+  }
+
+  // Returns { black, white }. Whites exclude blacks, so a peg is never counted twice.
+  function scoreGuess(code, guess) {
+    let black = 0;
+    for (let i = 0; i < CODE_LENGTH; i++) if (code[i] === guess[i]) black++;
+    let overlap = 0;
+    new Set(code).forEach(c => {
+      overlap += Math.min(code.filter(x => x === c).length, guess.filter(x => x === c).length);
+    });
+    return { black, white: overlap - black };
+  }
+
+  function buildPalette() {
+    NAMES.forEach(name => {
+      const b = document.createElement('button');
+      b.className = 'swatch';
+      b.style.background = COLORS[name];
+      b.setAttribute('aria-label', 'Add ' + name);
+      b.addEventListener('click', () => pick(name));
+      paletteEl.appendChild(b);
+    });
+  }
+
+  function pick(name) {
+    if (finished || pending.length >= CODE_LENGTH) return;
+    pending.push(name);
+    renderCurrent();
+    statusEl.textContent = '';
+  }
+
+  function renderCurrent() {
+    currentEl.innerHTML = '';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const s = document.createElement('div');
+      s.className = 'slot';
+      if (i < pending.length) {
+        s.style.background = COLORS[pending[i]];
+        s.style.boxShadow = 'inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25)';
+      }
+      currentEl.appendChild(s);
+    }
+  }
+
+  function renderEmptyHint() {
+    boardEl.innerHTML = '<div class="empty-hint">Pick four colors to start</div>';
+  }
+
+  function drawRow(guess, black, white) {
+    if (attempt === 1) boardEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const n = document.createElement('span');
+    n.className = 'row-num';
+    n.textContent = String(attempt).padStart(2, '0');
+    row.appendChild(n);
+
+    const g = document.createElement('div');
+    g.className = 'guess';
+    guess.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const d = document.createElement('div');
+      d.className = 'fb';
+      if (i < black) d.classList.add('black');
+      else if (i < black + white) d.classList.add('white');
+      fb.appendChild(d);
+    }
+    row.appendChild(fb);
+    boardEl.appendChild(row);
+  }
+
+  function drawSecret() {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const label = document.createElement('span');
+    label.className = 'row-num';
+    label.textContent = '★';
+    label.style.color = 'var(--accent)';
+    row.appendChild(label);
+    const g = document.createElement('div');
+    g.className = 'guess';
+    secret.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+    boardEl.appendChild(row);
+  }
+
+  function submit() {
+    if (finished) return;
+    if (pending.length < CODE_LENGTH) {
+      statusEl.textContent = 'Pick four colors first';
+      return;
+    }
+    const guess = pending.slice();
+    const { black, white } = scoreGuess(secret, guess);
+    attempt++;
+    drawRow(guess, black, white);
+    pending = [];
+    renderCurrent();
+
+    if (black === CODE_LENGTH) {
+      finished = true;
+      statusEl.textContent = 'Cracked it in ' + attempt + '!';
+      statusEl.className = 'status win';
+      return;
+    }
+    if (attempt >= MAX_ATTEMPTS) {
+      finished = true;
+      statusEl.textContent = 'Out of guesses';
+      statusEl.className = 'status lose';
+      drawSecret();
+      return;
+    }
+    statusEl.textContent = 'Attempt ' + (attempt + 1) + ' of ' + MAX_ATTEMPTS;
+  }
+
+  function undo() {
+    if (finished || !pending.length) return;
+    pending.pop();
+    renderCurrent();
+  }
+
+  function reset() {
+    secret = makeSecret();
+    pending = [];
+    attempt = 0;
+    finished = false;
+    renderEmptyHint();
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    renderCurrent();
+  }
+
+  document.getElementById('submit').addEventListener('click', submit);
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('reset').addEventListener('click', reset);
+
+  buildPalette();
+  reset();
+</script>
+</body>
+</html>
