@@ -219,4 +219,265 @@
       <div class="status" id="status"></div>
 
       <div class="key">
-        <div class="key-item"><span class="fb
+        <div class="key-item"><span class="fb black"></span> right color, right spot</div>
+        <div class="key-item"><span class="fb white"></span> right color, wrong spot</div>
+        <p class="key-note">The pegs count matches — they never show <em>which</em> ones.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="explainer">
+    <h2>How to read the pegs</h2>
+
+    <p class="lede">
+      This is the part that trips everyone up: the small pegs are a
+      <strong>tally, not a map</strong>. They tell you how many of your guesses
+      are right — never which ones.
+    </p>
+
+    <div class="example">
+      <div class="example-row">
+        <span class="example-label">Secret</span>
+        <div class="example-pegs">
+          <span class="peg" style="background: var(--peg-red)"></span>
+          <span class="peg" style="background: var(--peg-blue)"></span>
+          <span class="peg" style="background: var(--peg-green)"></span>
+          <span class="peg" style="background: var(--peg-yellow)"></span>
+        </div>
+        <span class="example-note">hidden from you, of course</span>
+      </div>
+
+      <div class="example-row">
+        <span class="example-label">Your guess</span>
+        <div class="example-pegs">
+          <span class="peg" style="background: var(--peg-red)"></span>
+          <span class="peg" style="background: var(--peg-purple)"></span>
+          <span class="peg" style="background: var(--peg-yellow)"></span>
+          <span class="peg" style="background: var(--peg-orange)"></span>
+        </div>
+        <div class="feedback example-fb">
+          <div class="fb black"></div>
+          <div class="fb white"></div>
+          <div class="fb"></div>
+          <div class="fb"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <span class="fb black"></span>
+        <div>
+          <strong>One black.</strong> Red is in the code <em>and</em> in the right
+          spot — position 1.
+        </div>
+      </div>
+      <div class="breakdown-item">
+        <span class="fb white"></span>
+        <div>
+          <strong>One white.</strong> Yellow is in the code, but you put it in
+          position 3 and it belongs in position 4.
+        </div>
+      </div>
+      <div class="breakdown-item">
+        <span class="fb"></span>
+        <div>
+          <strong>Two blanks.</strong> Purple and orange aren't in the code at all.
+        </div>
+      </div>
+    </div>
+
+    <p class="punchline">
+      Notice what the feedback <em>doesn't</em> say: that the black peg is about
+      red. The pegs always sort themselves — blacks first, then whites — so their
+      order carries no information. You get "one right, one misplaced" and have to
+      work out the rest by comparing it against your next guess.
+    </p>
+
+    <p class="punchline">
+      That's the whole game. Each guess narrows 1,296 possible codes down a little
+      further, until only one can still fit everything you've seen.
+    </p>
+  </section>
+
+  <p class="footer-note">
+    There's also a Python version with a desktop interface —
+    <a href="https://github.com/Akakiusz/small_python_games/tree/main/mastermind">see the code</a>.
+  </p>
+</div>
+
+<script>
+  const COLORS = {
+    red: 'var(--peg-red)', blue: 'var(--peg-blue)', green: 'var(--peg-green)',
+    yellow: 'var(--peg-yellow)', orange: 'var(--peg-orange)', purple: 'var(--peg-purple)'
+  };
+  const NAMES = Object.keys(COLORS);
+  const CODE_LENGTH = 4;
+  const MAX_ATTEMPTS = 10;
+
+  let secret = [], pending = [], attempt = 0, finished = false;
+
+  const boardEl = document.getElementById('board');
+  const paletteEl = document.getElementById('palette');
+  const currentEl = document.getElementById('current');
+  const statusEl = document.getElementById('status');
+
+  function makeSecret() {
+    return Array.from({ length: CODE_LENGTH },
+      () => NAMES[Math.floor(Math.random() * NAMES.length)]);
+  }
+
+  // Returns { black, white }. Whites exclude blacks, so a peg is never counted twice.
+  function scoreGuess(code, guess) {
+    let black = 0;
+    for (let i = 0; i < CODE_LENGTH; i++) if (code[i] === guess[i]) black++;
+    let overlap = 0;
+    new Set(code).forEach(c => {
+      overlap += Math.min(code.filter(x => x === c).length, guess.filter(x => x === c).length);
+    });
+    return { black, white: overlap - black };
+  }
+
+  function buildPalette() {
+    NAMES.forEach(name => {
+      const b = document.createElement('button');
+      b.className = 'swatch';
+      b.style.background = COLORS[name];
+      b.setAttribute('aria-label', 'Add ' + name);
+      b.addEventListener('click', () => pick(name));
+      paletteEl.appendChild(b);
+    });
+  }
+
+  function pick(name) {
+    if (finished || pending.length >= CODE_LENGTH) return;
+    pending.push(name);
+    renderCurrent();
+    statusEl.textContent = '';
+  }
+
+  function renderCurrent() {
+    currentEl.innerHTML = '';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const s = document.createElement('div');
+      s.className = 'slot';
+      if (i < pending.length) {
+        s.style.background = COLORS[pending[i]];
+        s.style.boxShadow = 'inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25)';
+      }
+      currentEl.appendChild(s);
+    }
+  }
+
+  function renderEmptyHint() {
+    boardEl.innerHTML = '<div class="empty-hint">Pick four colors to start</div>';
+  }
+
+  function drawRow(guess, black, white) {
+    if (attempt === 1) boardEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const n = document.createElement('span');
+    n.className = 'row-num';
+    n.textContent = String(attempt).padStart(2, '0');
+    row.appendChild(n);
+
+    const g = document.createElement('div');
+    g.className = 'guess';
+    guess.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const d = document.createElement('div');
+      d.className = 'fb';
+      if (i < black) d.classList.add('black');
+      else if (i < black + white) d.classList.add('white');
+      fb.appendChild(d);
+    }
+    row.appendChild(fb);
+    boardEl.appendChild(row);
+  }
+
+  function drawSecret() {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const label = document.createElement('span');
+    label.className = 'row-num';
+    label.textContent = '★';
+    label.style.color = 'var(--accent)';
+    row.appendChild(label);
+    const g = document.createElement('div');
+    g.className = 'guess';
+    secret.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+    boardEl.appendChild(row);
+  }
+
+  function submit() {
+    if (finished) return;
+    if (pending.length < CODE_LENGTH) {
+      statusEl.textContent = 'Pick four colors first';
+      return;
+    }
+    const guess = pending.slice();
+    const { black, white } = scoreGuess(secret, guess);
+    attempt++;
+    drawRow(guess, black, white);
+    pending = [];
+    renderCurrent();
+
+    if (black === CODE_LENGTH) {
+      finished = true;
+      statusEl.textContent = 'Cracked it in ' + attempt + '!';
+      statusEl.className = 'status win';
+      return;
+    }
+    if (attempt >= MAX_ATTEMPTS) {
+      finished = true;
+      statusEl.textContent = 'Out of guesses';
+      statusEl.className = 'status lose';
+      drawSecret();
+      return;
+    }
+    statusEl.textContent = 'Attempt ' + (attempt + 1) + ' of ' + MAX_ATTEMPTS;
+  }
+
+  function undo() {
+    if (finished || !pending.length) return;
+    pending.pop();
+    renderCurrent();
+  }
+
+  function reset() {
+    secret = makeSecret();
+    pending = [];
+    attempt = 0;
+    finished = false;
+    renderEmptyHint();
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    renderCurrent();
+  }
+
+  document.getElementById('submit').addEventListener('click', submit);
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('reset').addEventListener('click', reset);
+
+  buildPalette();
+  reset();
+</script>
+</body>
+</html>
