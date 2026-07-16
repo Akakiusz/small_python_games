@@ -3,163 +3,481 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python Mini Games — Arkadiusz Jędrzejewski</title>
-<meta name="description" content="Small Python games built while learning — some playable in the browser.">
+<title>Mastermind — Python Mini Games</title>
+<meta name="description" content="A logic code-breaking game. Crack the four-color code in ten guesses.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #14151a;
-    --card: #1c1e26;
-    --card-hover: #23262f;
+    --panel: #1c1e26;
+    --panel-2: #23262f;
     --ink: #ecebe4;
     --muted: #8b8d98;
     --line: #2e313c;
     --accent: #e8c24b;
-    --live: #46c07a;
+    --peg-red: #e5484d;
+    --peg-blue: #4a7dff;
+    --peg-green: #46c07a;
+    --peg-yellow: #f5c542;
+    --peg-orange: #f08c3c;
+    --peg-purple: #a877e8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: radial-gradient(1000px 500px at 20% -5%, #22242e 0%, transparent 55%), var(--bg);
+    background: radial-gradient(1200px 600px at 50% -10%, #20222c 0%, transparent 60%), var(--bg);
     color: var(--ink);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     min-height: 100vh;
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
-  .wrap { max-width: 720px; margin: 0 auto; padding: 72px 24px 80px; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
 
-  /* ---- Hero ---- */
+  .back {
+    display: inline-block; margin-bottom: 24px;
+    font-family: 'Space Mono', monospace; font-size: 13px;
+    color: var(--muted); text-decoration: none;
+  }
+  .back:hover { color: var(--accent); }
+
+  header { text-align: center; margin-bottom: 32px; }
   .eyebrow {
     font-family: 'Space Mono', monospace;
     font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 16px;
+    color: var(--accent); margin-bottom: 12px;
   }
   h1 {
-    font-family: 'Fraunces', serif; font-weight: 700;
-    font-size: clamp(40px, 8vw, 68px); line-height: 1.0; letter-spacing: -0.025em;
-    margin-bottom: 20px;
-  }
-  .intro { color: var(--muted); font-size: 17px; max-width: 52ch; }
-  .intro strong { color: var(--ink); font-weight: 500; }
-
-  .rule { height: 1px; background: var(--line); margin: 48px 0 40px; }
-
-  /* ---- Game cards ---- */
-  .games { display: flex; flex-direction: column; gap: 16px; }
-
-  .card {
-    display: block; text-decoration: none; color: inherit;
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 24px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-  }
-  .card:hover { border-color: var(--accent); background: var(--card-hover); }
-  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
-
-  .card-top {
-    display: flex; align-items: baseline; justify-content: space-between;
-    gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
-  }
-  .card h2 {
     font-family: 'Fraunces', serif; font-weight: 600;
-    font-size: 26px; letter-spacing: -0.01em;
+    font-size: clamp(38px, 7vw, 64px); line-height: 0.95; letter-spacing: -0.02em;
   }
-  .badge {
-    font-family: 'Space Mono', monospace; font-size: 10px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 4px 9px; border-radius: 20px; white-space: nowrap;
-  }
-  .badge.live { color: var(--live); border: 1px solid rgba(70,192,122,0.35); }
-  .badge.code { color: var(--muted); border: 1px solid var(--line); }
+  .tagline { color: var(--muted); margin-top: 12px; font-size: 15px; }
 
-  .card p { color: var(--muted); font-size: 15px; margin-bottom: 14px; }
+  .game { display: grid; grid-template-columns: 1fr 240px; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .game { grid-template-columns: 1fr; } }
 
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag {
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .panel h2 {
     font-family: 'Space Mono', monospace; font-size: 11px;
-    color: var(--muted); background: rgba(255,255,255,0.03);
-    border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px; text-align: center;
   }
 
-  .card-cta {
-    margin-top: 14px; font-family: 'Space Mono', monospace;
-    font-size: 12px; color: var(--accent);
+  .board { display: flex; flex-direction: column; gap: 6px; min-height: 90px; }
+  .empty-hint {
+    color: var(--muted); font-size: 13px; text-align: center;
+    padding: 24px 12px; font-family: 'Space Mono', monospace;
+  }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 10px; border-radius: 10px; background: var(--panel-2);
+    animation: pop 0.22s ease;
+  }
+  @keyframes pop { from { transform: translateY(5px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .row { animation: none; } }
+
+  .row-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+  .guess { display: flex; gap: 7px; }
+
+  .peg {
+    width: 28px; height: 28px; border-radius: 50%;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25);
   }
 
-  /* ---- Footer ---- */
-  footer {
-    margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--line);
-    color: var(--muted); font-size: 14px;
+  .feedback {
+    display: grid; grid-template-columns: repeat(2, 11px); gap: 4px;
+    margin-left: auto; padding: 5px; border-radius: 7px; background: #0f1014;
   }
-  footer a { color: var(--accent); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-  .links { margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .fb { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line); }
+  /* A black peg on a dark board needs an outline to read as "filled". */
+  .fb.black { background: #08090c; box-shadow: 0 0 0 1.5px var(--accent); }
+  .fb.white { background: var(--ink); box-shadow: none; }
+
+  .palette { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 16px; }
+  .swatch {
+    aspect-ratio: 1; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25);
+    transition: transform 0.1s ease;
+  }
+  .swatch:hover { transform: scale(1.08); }
+  .swatch:active { transform: scale(0.95); }
+  .swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .swatch { transition: none; } }
+
+  .current {
+    display: flex; gap: 7px; justify-content: center;
+    padding: 10px; background: var(--panel-2); border-radius: 10px; margin-bottom: 12px;
+  }
+  .slot { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--line); }
+
+  .btn {
+    width: 100%; padding: 11px; border-radius: 9px; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px;
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+    margin-bottom: 7px;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #14151a; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .status {
+    text-align: center; font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 18px;
+  }
+  .status.win { color: var(--peg-green); }
+  .status.lose { color: var(--peg-red); }
+
+  .key { margin-top: 16px; font-size: 12px; color: var(--muted); }
+  .key-item { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+  .key-note {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 11px; line-height: 1.45;
+  }
+  .key-note em { color: var(--ink); font-style: italic; }
+
+  /* ---- Explainer ---- */
+  .explainer {
+    margin-top: 40px; padding: 28px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  }
+  .explainer h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 24px; margin-bottom: 14px;
+  }
+  .lede { color: var(--muted); font-size: 15px; margin-bottom: 24px; max-width: 60ch; }
+  .lede strong { color: var(--accent); font-weight: 500; }
+
+  .example {
+    background: var(--panel-2); border-radius: 12px;
+    padding: 18px; margin-bottom: 22px;
+  }
+  .example-row {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .example-row:last-child { margin-bottom: 0; }
+  .example-label {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--muted); width: 78px; flex-shrink: 0;
+  }
+  .example-pegs { display: flex; gap: 7px; }
+  .example-note {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--muted); font-style: italic;
+  }
+  .example-fb { margin-left: 0; }
+
+  .breakdown { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+  .breakdown-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; color: var(--muted); line-height: 1.5;
+  }
+  .breakdown-item .fb { flex-shrink: 0; margin-top: 5px; }
+  .breakdown-item strong { color: var(--ink); font-weight: 500; }
+  .breakdown-item em { color: var(--ink); font-style: italic; }
+
+  .punchline {
+    color: var(--muted); font-size: 14px; line-height: 1.6;
+    max-width: 68ch; margin-bottom: 12px;
+  }
+  .punchline:last-child { margin-bottom: 0; }
+  .punchline em { color: var(--ink); font-style: italic; }
+
+  .footer-note {
+    margin-top: 32px; text-align: center; color: var(--muted); font-size: 13px;
+  }
+  .footer-note a { color: var(--accent); text-decoration: none; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow">Learning in public</div>
-  <h1>Python<br>Mini Games</h1>
-  <p class="intro">
-    Small games I'm building while working through a Python diploma. The point isn't
-    the games — it's <strong>rebuilding the same idea a few different ways</strong> and
-    watching the code get better each time.
-  </p>
+  <a class="back" href="../">← All games</a>
 
-  <div class="rule"></div>
+  <header>
+    <div class="eyebrow">A game of deduction</div>
+    <h1>Mastermind</h1>
+    <p class="tagline">Four colors, ten guesses. Read the pegs and narrow it down.</p>
+  </header>
 
-  <div class="games">
+  <div class="game">
+    <div class="panel">
+      <h2>Your guesses</h2>
+      <div class="board" id="board"></div>
+    </div>
 
-    <a class="card" href="mastermind/">
-      <div class="card-top">
-        <h2>Mastermind</h2>
-        <span class="badge live">Playable here</span>
+    <div class="panel">
+      <h2>Build a guess</h2>
+      <div class="palette" id="palette"></div>
+      <div class="current" id="current"></div>
+      <button class="btn primary" id="submit">Submit guess</button>
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="reset">New game</button>
+      <div class="status" id="status"></div>
+
+      <div class="key">
+        <div class="key-item"><span class="fb black"></span> right color, right spot</div>
+        <div class="key-item"><span class="fb white"></span> right color, wrong spot</div>
+        <p class="key-note">The pegs count matches — they never show <em>which</em> ones.</p>
       </div>
-      <p>
-        The computer hides a four-color code. Each guess tells you how many pegs are
-        right, and how many are the right color in the wrong place. Ten tries.
-      </p>
-      <div class="tags">
-        <span class="tag">JavaScript</span>
-        <span class="tag">Python</span>
-        <span class="tag">tkinter</span>
-        <span class="tag">unittest</span>
-      </div>
-      <div class="card-cta">Play now →</div>
-    </a>
-
-    <a class="card" href="https://github.com/Akakiusz/small_python_games/tree/main/number_guessing">
-      <div class="card-top">
-        <h2>Number Guessing</h2>
-        <span class="badge code">Code only</span>
-      </div>
-      <p>
-        The one that started it. Built four times over — each version adding functions,
-        difficulty levels, input validation, and finally a desktop interface.
-      </p>
-      <div class="tags">
-        <span class="tag">Python</span>
-        <span class="tag">tkinter</span>
-        <span class="tag">Jupyter</span>
-      </div>
-      <div class="card-cta">Read the code →</div>
-    </a>
-
+    </div>
   </div>
 
-  <footer>
-    Built by Arkadiusz Jędrzejewski while studying at CCT College Dublin.
-    <div class="links">
-      <a href="https://github.com/Akakiusz/small_python_games">Source on GitHub</a>
-      <a href="https://github.com/Akakiusz">GitHub profile</a>
-      <a href="https://www.linkedin.com/in/ark-jedrzejewsky">LinkedIn</a>
+  <section class="explainer">
+    <h2>How to read the pegs</h2>
+
+    <p class="lede">
+      This is the part that trips everyone up: the small pegs are a
+      <strong>tally, not a map</strong>. They tell you how many of your guesses
+      are right — never which ones.
+    </p>
+
+    <div class="example">
+      <div class="example-row">
+        <span class="example-label">Secret</span>
+        <div class="example-pegs">
+          <span class="peg" style="background: var(--peg-red)"></span>
+          <span class="peg" style="background: var(--peg-blue)"></span>
+          <span class="peg" style="background: var(--peg-green)"></span>
+          <span class="peg" style="background: var(--peg-yellow)"></span>
+        </div>
+        <span class="example-note">hidden from you, of course</span>
+      </div>
+
+      <div class="example-row">
+        <span class="example-label">Your guess</span>
+        <div class="example-pegs">
+          <span class="peg" style="background: var(--peg-red)"></span>
+          <span class="peg" style="background: var(--peg-purple)"></span>
+          <span class="peg" style="background: var(--peg-yellow)"></span>
+          <span class="peg" style="background: var(--peg-orange)"></span>
+        </div>
+        <div class="feedback example-fb">
+          <div class="fb black"></div>
+          <div class="fb white"></div>
+          <div class="fb"></div>
+          <div class="fb"></div>
+        </div>
+      </div>
     </div>
-  </footer>
+
+    <div class="breakdown">
+      <div class="breakdown-item">
+        <span class="fb black"></span>
+        <div>
+          <strong>One black.</strong> Red is in the code <em>and</em> in the right
+          spot — position 1.
+        </div>
+      </div>
+      <div class="breakdown-item">
+        <span class="fb white"></span>
+        <div>
+          <strong>One white.</strong> Yellow is in the code, but you put it in
+          position 3 and it belongs in position 4.
+        </div>
+      </div>
+      <div class="breakdown-item">
+        <span class="fb"></span>
+        <div>
+          <strong>Two blanks.</strong> Purple and orange aren't in the code at all.
+        </div>
+      </div>
+    </div>
+
+    <p class="punchline">
+      Notice what the feedback <em>doesn't</em> say: that the black peg is about
+      red. The pegs always sort themselves — blacks first, then whites — so their
+      order carries no information. You get "one right, one misplaced" and have to
+      work out the rest by comparing it against your next guess.
+    </p>
+
+    <p class="punchline">
+      That's the whole game. Each guess narrows 1,296 possible codes down a little
+      further, until only one can still fit everything you've seen.
+    </p>
+  </section>
+
+  <p class="footer-note">
+    There's also a Python version with a desktop interface —
+    <a href="https://github.com/Akakiusz/small_python_games/tree/main/mastermind">see the code</a>.
+  </p>
 </div>
+
+<script>
+  const COLORS = {
+    red: 'var(--peg-red)', blue: 'var(--peg-blue)', green: 'var(--peg-green)',
+    yellow: 'var(--peg-yellow)', orange: 'var(--peg-orange)', purple: 'var(--peg-purple)'
+  };
+  const NAMES = Object.keys(COLORS);
+  const CODE_LENGTH = 4;
+  const MAX_ATTEMPTS = 10;
+
+  let secret = [], pending = [], attempt = 0, finished = false;
+
+  const boardEl = document.getElementById('board');
+  const paletteEl = document.getElementById('palette');
+  const currentEl = document.getElementById('current');
+  const statusEl = document.getElementById('status');
+
+  function makeSecret() {
+    return Array.from({ length: CODE_LENGTH },
+      () => NAMES[Math.floor(Math.random() * NAMES.length)]);
+  }
+
+  // Returns { black, white }. Whites exclude blacks, so a peg is never counted twice.
+  function scoreGuess(code, guess) {
+    let black = 0;
+    for (let i = 0; i < CODE_LENGTH; i++) if (code[i] === guess[i]) black++;
+    let overlap = 0;
+    new Set(code).forEach(c => {
+      overlap += Math.min(code.filter(x => x === c).length, guess.filter(x => x === c).length);
+    });
+    return { black, white: overlap - black };
+  }
+
+  function buildPalette() {
+    NAMES.forEach(name => {
+      const b = document.createElement('button');
+      b.className = 'swatch';
+      b.style.background = COLORS[name];
+      b.setAttribute('aria-label', 'Add ' + name);
+      b.addEventListener('click', () => pick(name));
+      paletteEl.appendChild(b);
+    });
+  }
+
+  function pick(name) {
+    if (finished || pending.length >= CODE_LENGTH) return;
+    pending.push(name);
+    renderCurrent();
+    statusEl.textContent = '';
+  }
+
+  function renderCurrent() {
+    currentEl.innerHTML = '';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const s = document.createElement('div');
+      s.className = 'slot';
+      if (i < pending.length) {
+        s.style.background = COLORS[pending[i]];
+        s.style.boxShadow = 'inset 0 -3px 6px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.25)';
+      }
+      currentEl.appendChild(s);
+    }
+  }
+
+  function renderEmptyHint() {
+    boardEl.innerHTML = '<div class="empty-hint">Pick four colors to start</div>';
+  }
+
+  function drawRow(guess, black, white) {
+    if (attempt === 1) boardEl.innerHTML = '';
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const n = document.createElement('span');
+    n.className = 'row-num';
+    n.textContent = String(attempt).padStart(2, '0');
+    row.appendChild(n);
+
+    const g = document.createElement('div');
+    g.className = 'guess';
+    guess.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+    for (let i = 0; i < CODE_LENGTH; i++) {
+      const d = document.createElement('div');
+      d.className = 'fb';
+      if (i < black) d.classList.add('black');
+      else if (i < black + white) d.classList.add('white');
+      fb.appendChild(d);
+    }
+    row.appendChild(fb);
+    boardEl.appendChild(row);
+  }
+
+  function drawSecret() {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const label = document.createElement('span');
+    label.className = 'row-num';
+    label.textContent = '★';
+    label.style.color = 'var(--accent)';
+    row.appendChild(label);
+    const g = document.createElement('div');
+    g.className = 'guess';
+    secret.forEach(c => {
+      const p = document.createElement('div');
+      p.className = 'peg';
+      p.style.background = COLORS[c];
+      g.appendChild(p);
+    });
+    row.appendChild(g);
+    boardEl.appendChild(row);
+  }
+
+  function submit() {
+    if (finished) return;
+    if (pending.length < CODE_LENGTH) {
+      statusEl.textContent = 'Pick four colors first';
+      return;
+    }
+    const guess = pending.slice();
+    const { black, white } = scoreGuess(secret, guess);
+    attempt++;
+    drawRow(guess, black, white);
+    pending = [];
+    renderCurrent();
+
+    if (black === CODE_LENGTH) {
+      finished = true;
+      statusEl.textContent = 'Cracked it in ' + attempt + '!';
+      statusEl.className = 'status win';
+      return;
+    }
+    if (attempt >= MAX_ATTEMPTS) {
+      finished = true;
+      statusEl.textContent = 'Out of guesses';
+      statusEl.className = 'status lose';
+      drawSecret();
+      return;
+    }
+    statusEl.textContent = 'Attempt ' + (attempt + 1) + ' of ' + MAX_ATTEMPTS;
+  }
+
+  function undo() {
+    if (finished || !pending.length) return;
+    pending.pop();
+    renderCurrent();
+  }
+
+  function reset() {
+    secret = makeSecret();
+    pending = [];
+    attempt = 0;
+    finished = false;
+    renderEmptyHint();
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    renderCurrent();
+  }
+
+  document.getElementById('submit').addEventListener('click', submit);
+  document.getElementById('undo').addEventListener('click', undo);
+  document.getElementById('reset').addEventListener('click', reset);
+
+  buildPalette();
+  reset();
+</script>
 </body>
 </html>
