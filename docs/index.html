@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Mini Games — Arkadiusz Jędrzejewski</title>
+<meta name="description" content="Small Python games built while learning — some playable in the browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14151a;
+    --card: #1c1e26;
+    --card-hover: #23262f;
+    --ink: #ecebe4;
+    --muted: #8b8d98;
+    --line: #2e313c;
+    --accent: #e8c24b;
+    --live: #46c07a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: radial-gradient(1000px 500px at 20% -5%, #22242e 0%, transparent 55%), var(--bg);
+    color: var(--ink);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 72px 24px 80px; }
+
+  /* ---- Hero ---- */
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 700;
+    font-size: clamp(40px, 8vw, 68px); line-height: 1.0; letter-spacing: -0.025em;
+    margin-bottom: 20px;
+  }
+  .intro { color: var(--muted); font-size: 17px; max-width: 52ch; }
+  .intro strong { color: var(--ink); font-weight: 500; }
+
+  .rule { height: 1px; background: var(--line); margin: 48px 0 40px; }
+
+  /* ---- Game cards ---- */
+  .games { display: flex; flex-direction: column; gap: 16px; }
+
+  .card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 24px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .card:hover { border-color: var(--accent); background: var(--card-hover); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+  .card-top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .card h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 26px; letter-spacing: -0.01em;
+  }
+  .badge {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .badge.live { color: var(--live); border: 1px solid rgba(70,192,122,0.35); }
+  .badge.code { color: var(--muted); border: 1px solid var(--line); }
+
+  .card p { color: var(--muted); font-size: 15px; margin-bottom: 14px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--muted); background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px;
+  }
+
+  .card-cta {
+    margin-top: 14px; font-family: 'Space Mono', monospace;
+    font-size: 12px; color: var(--accent);
+  }
+
+  /* ---- Footer ---- */
+  footer {
+    margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 14px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .links { margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Learning in public</div>
+  <h1>Python<br>Mini Games</h1>
+  <p class="intro">
+    Small games I'm building while working through a Python diploma. The point isn't
+    the games — it's <strong>rebuilding the same idea a few different ways</strong> and
+    watching the code get better each time.
+  </p>
+
+  <div class="rule"></div>
+
+  <div class="games">
+
+    <a class="card" href="mastermind/">
+      <div class="card-top">
+        <h2>Mastermind</h2>
+        <span class="badge live">Playable here</span>
+      </div>
+      <p>
+        The computer hides a four-color code. Each guess tells you how many pegs are
+        right, and how many are the right color in the wrong place. Ten tries.
+      </p>
+      <div class="tags">
+        <span class="tag">JavaScript</span>
+        <span class="tag">Python</span>
+        <span class="tag">tkinter</span>
+        <span class="tag">unittest</span>
+      </div>
+      <div class="card-cta">Play now →</div>
+    </a>
+
+    <a class="card" href="https://github.com/Akakiusz/small_python_games/tree/main/number_guessing">
+      <div class="card-top">
+        <h2>Number Guessing</h2>
+        <span class="badge code">Code only</span>
+      </div>
+      <p>
+        The one that started it. Built four times over — each version adding functions,
+        difficulty levels, input validation, and finally a desktop interface.
+      </p>
+      <div class="tags">
+        <span class="tag">Python</span>
+        <span class="tag">tkinter</span>
+        <span class="tag">Jupyter</span>
+      </div>
+      <div class="card-cta">Read the code →</div>
+    </a>
+
+  </div>
+
+  <footer>
+    Built by Arkadiusz Jędrzejewski while studying at CCT College Dublin.
+    <div class="links">
+      <a href="https://github.com/Akakiusz/small_python_games">Source on GitHub</a>
+      <a href="https://github.com/Akakiusz">GitHub profile</a>
+      <a href="https://www.linkedin.com/in/ark-jedrzejewsky">LinkedIn</a>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
