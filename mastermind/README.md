@@ -1,6 +1,12 @@
 # Mastermind
 
-A logic code-breaking game with a `tkinter` GUI.
+**[▶ Play it in your browser](https://akakiusz.github.io/small_python_games/mastermind/)** — no install needed.
+
+This folder holds the Python version, which runs as a desktop app with a
+`tkinter` interface. The browser version lives in [`docs/mastermind/`](../docs/mastermind/)
+and is written in JavaScript — same rules, different language.
+
+## The game
 
 The computer picks a secret code of four colored pegs. After each guess you get
 feedback:
@@ -8,7 +14,8 @@ feedback:
 - **Black peg** — right color in the right position
 - **White peg** — right color, wrong position
 
-You have ten guesses to crack it.
+The pegs tell you *how many* are right, never *which ones*. That's the whole
+game: comparing guesses until only one code can still fit. You have ten tries.
 
 ## Files
 
@@ -20,7 +27,8 @@ You have ten guesses to crack it.
 
 The logic is kept separate from the interface so the scoring rules can be tested
 without opening a window. Scoring duplicate colors correctly is the tricky part
-of Mastermind, and the tests cover it.
+of Mastermind — if the code has two reds and you guess four, only two should
+count. The tests cover that case and a few others like it.
 
 ## Play
 
